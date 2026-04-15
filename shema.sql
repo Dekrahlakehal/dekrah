@@ -75,9 +75,22 @@ CREATE TABLE IF NOT EXISTS notes (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     etudiant_id     INT NOT NULL,
     module_id       INT NOT NULL,
-    note            DECIMAL(4,2) NOT NULL CHECK (note >= 0 AND note <= 20),
+    note_tp         DECIMAL(4,2) NULL CHECK (note_tp >= 0 AND note_tp <= 20),
+    note_td         DECIMAL(4,2) NULL CHECK (note_td >= 0 AND note_td <= 20),
+    note_exam       DECIMAL(4,2) NULL CHECK (note_exam >= 0 AND note_exam <= 20),
     annee_univ      VARCHAR(10) NOT NULL DEFAULT '2025/2026',
     UNIQUE KEY uq_note (etudiant_id, module_id, annee_univ),
+    FOREIGN KEY (etudiant_id) REFERENCES etudiants(id) ON DELETE CASCADE,
+    FOREIGN KEY (module_id)   REFERENCES modules(id)   ON DELETE CASCADE
+);
+
+-- ── Absences ──────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS absences (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    etudiant_id     INT NOT NULL,
+    module_id       INT NOT NULL,
+    nombre          INT NOT NULL DEFAULT 0,
+    annee_univ      VARCHAR(10) NOT NULL DEFAULT '2025/2026',
     FOREIGN KEY (etudiant_id) REFERENCES etudiants(id) ON DELETE CASCADE,
     FOREIGN KEY (module_id)   REFERENCES modules(id)   ON DELETE CASCADE
 );
