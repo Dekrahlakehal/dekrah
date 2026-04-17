@@ -1,11 +1,11 @@
 <?php
 // ============================================================
-//  login.php — Page de connexion
+//  login.php — Login page
 // ============================================================
 require_once 'includes/auth.php';
 
 if (is_logged_in()) {
-    header('Location: ' . get_dashboard_url());
+    header('Location: ' . url(get_dashboard_url()));
     exit;
 }
 
@@ -19,16 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $role        = $_POST['role'] ?? '';
 
     if (empty($identifiant) || empty($password) || empty($role)) {
-        $error = 'Veuillez remplir tous les champs.';
+        $error = 'Please fill in all fields.';
     } else {
         $result = login($identifiant, $password, $role);
         if ($result['success']) {
-            if (!empty($result['must_change'])) {
-                header('Location: change_password.php');
-                exit;
-            }
-
-            header('Location: ' . get_dashboard_url());
+            header('Location: ' . url(get_dashboard_url()));
             exit;
         } else {
             $error = $result['message'];
@@ -37,11 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion – <?= APP_NAME ?></title>
+    <title>Login – <?= APP_NAME ?></title>
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -55,8 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
     <div class="nav-links">
-        <a href="index.php" class="nav-link">Accueil</a>
-        <a href="login.php" class="nav-link active">Connexion</a>
+        <a href="index.php" class="nav-link">Home</a>
+        <a href="login.php" class="nav-link active">Login</a>
     </div>
 </nav>
 
@@ -64,17 +59,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="auth-card">
         <div class="auth-header">
             <div style="font-size:28px; margin-bottom:10px;">🔐</div>
-            <div class="auth-title">Connexion</div>
-            <div class="auth-sub">Accédez à votre espace personnel USTHB Scolarité</div>
+            <div class="auth-title">Login</div>
+            <div class="auth-sub">Access your USTHB Scolarité personal space</div>
         </div>
 
         <?php if ($error): echo alert('error', $error); endif; ?>
 
         <form method="POST" action="login.php">
-            <div class="rs-label">Se connecter en tant que</div>
+            <div class="rs-label">Login as</div>
             <div class="role-selector">
                 <?php
-                $roles = ['etudiant' => 'Étudiant', 'enseignant' => 'Enseignant', 'admin' => 'Admin'];
+                $roles = ['etudiant' => 'Student', 'enseignant' => 'Teacher', 'admin' => 'Admin'];
                 foreach ($roles as $key => $label):
                     $sel = ($key === $pre_role) ? 'sel' : '';
                 ?>
@@ -86,31 +81,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="hidden" name="role" id="role-input" value="<?= h($pre_role) ?>">
 
             <div class="form-group">
-                <label id="identifiant-label">Email ou matricule</label>
+                <label id="identifiant-label">Email or Registration Number</label>
                 <input type="text" name="identifiant" id="identifiant-input"
-                       placeholder="ex : 12345 ou email@usthb.dz"
+                       placeholder="e.g. 12345 or email@usthb.dz"
                        value="<?= h($_POST['identifiant'] ?? '') ?>" required>
             </div>
             <div class="form-group">
-                <label>Mot de passe</label>
+                <label>Password</label>
                 <input type="password" name="password" placeholder="••••••••" required>
             </div>
 
-            <button type="submit" class="btn-full">Se connecter</button>
+            <button type="submit" class="btn-full">Login</button>
         </form>
 
         <div style="margin-top:20px; padding:12px; background:var(--color-bg-secondary); border-radius:var(--radius-md); font-size:11px; color:var(--color-text-secondary); line-height:1.8;">
-            <strong style="display:block; margin-bottom:4px;">ℹ️ Information</strong>
-            Les comptes sont créés uniquement par l'administrateur de la scolarité.<br>
-            Contactez l'administration si vous n'avez pas encore vos identifiants.
+            <strong style="display:block; margin-bottom:4px;">Information</strong>
+            Accounts are created only by the scolarité administrator.<br>
+            Contact administration if you don't yet have your credentials.
         </div>
 
         <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--color-border-light);">
-            <div style="font-size:10px;font-weight:700;color:var(--color-text-tertiary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;">Comptes de démonstration</div>
+            <div style="font-size:10px;font-weight:700;color:var(--color-text-tertiary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;">Demo Accounts</div>
             <div style="font-size:11px;color:var(--color-text-secondary);line-height:2;">
-                <strong>Étudiant :</strong> 12345 / password123<br>
-                <strong>Enseignant :</strong> laachemi@usthb.dz / password123<br>
-                <strong>Admin :</strong> admin@usthb.dz / password123
+                <strong>Student:</strong> 12345 / password123<br>
+                <strong>Teacher:</strong> laachemi@usthb.dz / password123<br>
+                <strong>Admin:</strong> admin@usthb.dz / password123
             </div>
         </div>
     </div>
@@ -124,8 +119,8 @@ function selRole(r) {
     var label = document.getElementById('identifiant-label');
     var input = document.getElementById('identifiant-input');
     if (r === 'etudiant') {
-        label.textContent = 'Email ou matricule';
-        input.placeholder = 'ex : 12345 ou email@usthb.dz';
+        label.textContent = 'Email or Registration Number';
+        input.placeholder = 'e.g. 12345 or email@usthb.dz';
     } else {
         label.textContent = 'Email';
         input.placeholder = 'email@usthb.dz';

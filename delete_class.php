@@ -5,6 +5,6 @@ if (isset($_GET['id'])) {
     $stmt = $pdo->prepare("DELETE FROM planning WHERE id = ? AND etudiant_id = ?");
     $stmt->execute([$_GET['id'], $_SESSION['user_id']]);
 }
-header("Location: student.php");
+header('Location: ' . url('student.php'));
 exit();
 ?>

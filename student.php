@@ -1,7 +1,7 @@
 <?php
 require_once 'includes/auth.php';
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'etudiant') { 
-    header('Location: login.php'); 
+    header('Location: ' . url('login.php')); 
     exit(); 
 }
 $pdo = get_pdo();
@@ -27,9 +27,17 @@ $stmt->execute([$user_id]);
 $all_absences = $stmt->fetchAll();
 
 function calculateFinal($tp, $td, $exam) {
-    if ($td === null || $exam === null) return 0;
-    if ($tp === null) return ($td * 0.4) + ($exam * 0.6); 
-    return ($tp * 0.2) + ($td * 0.2) + ($exam * 0.6);
+    if ($exam === null) return null;
+    if ($tp === null && $td === null) {
+        return round($exam * 0.6, 2);
+    }
+    if ($tp === null) {
+        return round(($td * 0.4) + ($exam * 0.6), 2);
+    }
+    if ($td === null) {
+        return round(($tp * 0.2) + ($exam * 0.8), 2);
+    }
+    return round(($tp * 0.2) + ($td * 0.2) + ($exam * 0.6), 2);
 }
 ?>
 <!DOCTYPE html>
@@ -118,9 +126,15 @@ function calculateFinal($tp, $td, $exam) {
                     <div class="left-col">
                         <div class="card">
                             <h3 style="margin-bottom:20px; color:#1e4f8c; font-size:16px;">Today's Schedule</h3>
-                            <?php foreach($today_schedule as $item): ?>
-                            <div class="schedule-item" style="flex-direction:row;"><div class="schedule-date"><span><?= strtoupper(date('M')) ?></span><strong><?= date('d') ?></strong></div><div style="flex:1"><h4><?= htmlspecialchars($item['module_name']) ?></h4><p><?= htmlspecialchars($item['heure_debut']) ?> • <?= htmlspecialchars($item['salle']) ?></p></div></div>
-                            <?php endforeach; ?>
+                            <?php if (empty($today_schedule)): ?>
+                                <div style="padding:20px; border-radius:16px; background:#ecfdf5; color:#166534; font-weight:600; border:1px solid #d1fae5;">
+                                    You don't have classes today — enjoy your day!
+                                </div>
+                            <?php else: ?>
+                                <?php foreach($today_schedule as $item): ?>
+                                <div class="schedule-item" style="flex-direction:row;"><div class="schedule-date"><span><?= strtoupper(date('M')) ?></span><strong><?= date('d') ?></strong></div><div style="flex:1"><h4><?= htmlspecialchars($item['module_name']) ?></h4><p><?= htmlspecialchars($item['heure_debut']) ?> • <?= htmlspecialchars($item['salle']) ?></p></div></div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                         <div class="card">
                             <h3 style="margin-bottom:20px; color:#1e4f8c; font-size:16px;">Performance</h3>
@@ -128,8 +142,13 @@ function calculateFinal($tp, $td, $exam) {
                                 $fNote = calculateFinal($n['note_tp'], $n['note_td'], $n['note_exam']);
                             ?>
                             <div class="grade-row">
-                                <div class="grade-info"><span><?= htmlspecialchars($n['code']) ?></span><span><?= number_format($fNote, 2) ?>/20</span></div>
-                                <div class="grade-track"><div class="grade-fill" style="width:<?= ($fNote/20)*100 ?>%;"></div></div>
+                                <div class="grade-info"><span><?= htmlspecialchars($n['code']) ?></span><span><?= $fNote !== null ? number_format($fNote, 2) . '/20' : 'N/A' ?></span></div>
+                                <div class="grade-track"><div class="grade-fill" style="width:<?= $fNote !== null ? (($fNote/20)*100) : 0 ?>%;"></div></div>
+                                <div style="display:flex; justify-content:space-between; font-size:12px; color:#475569; margin-top:10px; gap:12px;">
+                                    <span>TP: <?= $n['note_tp'] !== null ? htmlspecialchars($n['note_tp']) . '/20' : '-' ?></span>
+                                    <span>TD: <?= $n['note_td'] !== null ? htmlspecialchars($n['note_td']) . '/20' : '-' ?></span>
+                                    <span>Exam: <?= $n['note_exam'] !== null ? htmlspecialchars($n['note_exam']) . '/20' : '-' ?></span>
+                                </div>
                             </div>
                             <?php endforeach; ?>
                         </div>

@@ -1,7 +1,7 @@
 <?php
 require_once 'includes/auth.php';
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'etudiant') {
-    header('Location: login.php');
+    header('Location: ' . url('login.php'));
     exit();
 }
 $pdo = get_pdo();

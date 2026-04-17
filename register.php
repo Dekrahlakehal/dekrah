@@ -5,7 +5,7 @@
 require_once 'includes/auth.php';
 
 if (is_logged_in()) {
-    header('Location: ' . get_dashboard_url());
+    header('Location: ' . url(get_dashboard_url()));
     exit;
 }
 

@@ -1,7 +1,7 @@
 <?php
 require_once 'includes/auth.php';
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'etudiant') {
-    header('Location: login.php');
+    header('Location: ' . url('login.php'));
     exit();
 }
 $pdo = get_pdo();
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $task_id = (int)$_POST['task_id'];
         $pdo->prepare('DELETE FROM tasks WHERE id = ?')->execute([$task_id]);
     }
-    header('Location: assignments.php');
+    header('Location: ' . url('assignments.php'));
     exit();
 }
 

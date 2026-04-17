@@ -28,5 +28,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Automatic return to your dashboard
-header("Location: student.php");
+header('Location: ' . url('student.php'));
 exit;

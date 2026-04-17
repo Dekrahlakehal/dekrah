@@ -1,4 +1,10 @@
 <?php
-// logout.php — Déconnexion
 require_once 'includes/auth.php';
-logout();
+
+// Destroy session
+session_destroy();
+
+// Redirect to login
+header('Location: login.php');
+exit;
+

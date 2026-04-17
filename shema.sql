@@ -75,27 +75,28 @@ CREATE TABLE IF NOT EXISTS notes (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     etudiant_id     INT NOT NULL,
     module_id       INT NOT NULL,
-    note_tp         DECIMAL(4,2) NULL CHECK (note_tp >= 0 AND note_tp <= 20),
-    note_td         DECIMAL(4,2) NULL CHECK (note_td >= 0 AND note_td <= 20),
-    note_exam       DECIMAL(4,2) NULL CHECK (note_exam >= 0 AND note_exam <= 20),
+    enseignant_id   INT,
+    note_tp         DECIMAL(4,2) DEFAULT NULL,
+    note_td         DECIMAL(4,2) DEFAULT NULL,
+    note_exam       DECIMAL(4,2) DEFAULT NULL,
     annee_univ      VARCHAR(10) NOT NULL DEFAULT '2025/2026',
     UNIQUE KEY uq_note (etudiant_id, module_id, annee_univ),
     FOREIGN KEY (etudiant_id) REFERENCES etudiants(id) ON DELETE CASCADE,
-    FOREIGN KEY (module_id)   REFERENCES modules(id)   ON DELETE CASCADE
+    FOREIGN KEY (module_id)   REFERENCES modules(id)   ON DELETE CASCADE,
+    FOREIGN KEY (enseignant_id) REFERENCES enseignants(id) ON DELETE SET NULL
 );
 
--- ── Absences ──────────────────────────────────────────────
+-- ── Absences (student absence tracking) ────────────────
 CREATE TABLE IF NOT EXISTS absences (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     etudiant_id     INT NOT NULL,
     module_id       INT NOT NULL,
     nombre          INT NOT NULL DEFAULT 0,
     annee_univ      VARCHAR(10) NOT NULL DEFAULT '2025/2026',
+    UNIQUE KEY uq_absence (etudiant_id, module_id, annee_univ),
     FOREIGN KEY (etudiant_id) REFERENCES etudiants(id) ON DELETE CASCADE,
     FOREIGN KEY (module_id)   REFERENCES modules(id)   ON DELETE CASCADE
 );
-
--- ── Planning (emploi du temps) ─────────────────────────────
 CREATE TABLE IF NOT EXISTS planning (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     etudiant_id     INT NOT NULL,
@@ -124,7 +125,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 -- ============================================================
 
 -- Mot de passe commun : "password123"  (bcrypt hash)
-SET @hash = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
+SET @hash = '$2y$12$IQGznSs9ofVhk4R7VzHdge1Q3kN302qUvdUcbgSHiDd3dh7awq5Na';
 
 INSERT IGNORE INTO etudiants (nom, prenom, email, matricule, niveau, date_naissance, mot_de_passe)
 VALUES
@@ -155,7 +156,7 @@ VALUES (1,1,'2025/2026'),(1,2,'2025/2026'),(1,3,'2025/2026'),(1,4,'2025/2026'),
        (3,1,'2025/2026'),(3,3,'2025/2026'),(3,4,'2025/2026');
 
 -- Notes
-INSERT IGNORE INTO notes (etudiant_id, module_id, note, annee_univ)
+INSERT IGNORE INTO notes (etudiant_id, module_id, note_exam, annee_univ)
 VALUES
     (1,1,18.00,'2025/2026'),(1,2,12.50,'2025/2026'),(1,3,15.00,'2025/2026'),(1,4,9.50,'2025/2026'),
     (2,1,14.00,'2025/2026'),(2,2, 8.00,'2025/2026'),(2,3,11.00,'2025/2026'),
