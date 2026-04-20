@@ -1,13 +1,6 @@
 <?php
-// ============================================================
-//  register.php — Page d'inscription
-// ============================================================
 require_once '../includes/auth.php';
-
-if (is_logged_in()) {
-    header('Location: ' . url(get_dashboard_url()));
-    exit;
-}
+if (is_logged_in()) { header('Location: ' . url(get_dashboard_url())); exit; }
 
 $error   = '';
 $success = '';
@@ -60,7 +53,7 @@ $post_role = $_POST['role'] ?? 'etudiant';
 <!-- Navbar -->
 <nav class="navbar">
     <div class="nav-logo">
-        <div class="nav-logo-box"><span>FI</span></div>
+        <div class="nav-logo-box"><img src="../img/usthb.png" alt="USTHB Logo" width="34" height="34"></div>
         <div>
             <div class="nav-brand"><?= APP_NAME ?></div>
             <div class="nav-brand-sub"><?= APP_SUB ?></div>

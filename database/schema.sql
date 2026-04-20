@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS etudiants (
     date_naissance  DATE,
     mot_de_passe    VARCHAR(255) NOT NULL,
     actif           TINYINT(1)   NOT NULL DEFAULT 1,
+    last_online     TIMESTAMP NULL DEFAULT NULL,
     created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -32,6 +33,7 @@ CREATE TABLE IF NOT EXISTS enseignants (
     specialite      VARCHAR(120),
     mot_de_passe    VARCHAR(255) NOT NULL,
     actif           TINYINT(1)   NOT NULL DEFAULT 1,
+    last_online     TIMESTAMP NULL DEFAULT NULL,
     created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -44,6 +46,7 @@ CREATE TABLE IF NOT EXISTS admins (
     service         VARCHAR(120),
     mot_de_passe    VARCHAR(255) NOT NULL,
     actif           TINYINT(1)   NOT NULL DEFAULT 1,
+    last_online     TIMESTAMP NULL DEFAULT NULL,
     created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 

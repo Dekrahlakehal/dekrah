@@ -12,30 +12,24 @@ $admin = $stmt->fetch();
 
 $notif = '';
 $panel = $_GET['panel'] ?? 'dashboard';
-
-// ── Delete Student ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_student'])) {
     $student_id = (int)$_POST['student_id'];
     $stmt = $pdo->prepare("DELETE FROM etudiants WHERE id = ?");
     $stmt->execute([$student_id]);
     $notif = '<div style="background:#d1fae5;color:#166534;padding:12px 16px;border-radius:10px;font-size:14px;margin-bottom:16px;">Student deleted successfully.</div>';
 }
-
-// ── Delete Teacher ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_teacher'])) {
     $teacher_id = (int)$_POST['teacher_id'];
     $stmt = $pdo->prepare("DELETE FROM enseignants WHERE id = ?");
     $stmt->execute([$teacher_id]);
     $notif = '<div style="background:#d1fae5;color:#166534;padding:12px 16px;border-radius:10px;font-size:14px;margin-bottom:16px;">Teacher deleted successfully.</div>';
 }
-
-// ── Add Student ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_student'])) {
     $nom = trim($_POST['nom'] ?? '');
     $prenom = trim($_POST['prenom'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $matricule = trim($_POST['matricule'] ?? '');
-    $niveau = $_POST['niveau'] ?? 'L1 Info';
+    $niveau = $_POST['niveau'] ?? 'L2 ISIL';
     $password = $_POST['password'] ?? uniqid('pwd_');
 
     if (!$nom || !$prenom || !$email || !$matricule) {
@@ -57,15 +51,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_student'])) {
         }
     }
 }
-
-// ── Update Student ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_student'])) {
     $student_id = (int)$_POST['student_id'];
     $nom = trim($_POST['nom'] ?? '');
     $prenom = trim($_POST['prenom'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $matricule = trim($_POST['matricule'] ?? '');
-    $niveau = $_POST['niveau'] ?? 'L1 Info';
+    $niveau = $_POST['niveau'] ?? 'L2 ISIL';
 
     if (!$nom || !$prenom || !$email || !$matricule) {
         $notif = '<div style="background:#fee2e2;color:#dc2626;padding:12px 16px;border-radius:10px;font-size:14px;margin-bottom:16px;">Please fill in all required fields.</div>';
@@ -79,8 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_student'])) {
         }
     }
 }
-
-// ── Add Teacher ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_teacher'])) {
     $nom = trim($_POST['nom'] ?? '');
     $prenom = trim($_POST['prenom'] ?? '');
@@ -102,8 +92,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_teacher'])) {
         }
     }
 }
-
-// ── Update Teacher ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_teacher'])) {
     $teacher_id = (int)$_POST['teacher_id'];
     $nom = trim($_POST['nom'] ?? '');
@@ -124,8 +112,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_teacher'])) {
         }
     }
 }
-
-// ── Add Module ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_module'])) {
     $code = trim($_POST['code'] ?? '');
     $intitule = trim($_POST['intitule'] ?? '');
@@ -155,18 +141,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_module'])) {
         }
     }
 }
-
-// ── Delete Module ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_module'])) {
     $module_id = (int)$_POST['module_id'];
     $stmt = $pdo->prepare("DELETE FROM modules WHERE id = ?");
     $stmt->execute([$module_id]);
     $notif = '<div style="background:#d1fae5;color:#166534;padding:12px 16px;border-radius:10px;font-size:14px;margin-bottom:16px;">Module deleted successfully.</div>';
 }
-
-// Get data for displays
-$students = $pdo->query("SELECT * FROM etudiants ORDER BY nom, prenom")->fetchAll();
-$teachers = $pdo->query("SELECT * FROM enseignants ORDER BY nom, prenom")->fetchAll();
+$students = $pdo->query("SELECT *, last_online FROM etudiants WHERE niveau LIKE 'L2%' ORDER BY nom, prenom")->fetchAll();
+$teachers = $pdo->query("SELECT *, last_online FROM enseignants ORDER BY nom, prenom")->fetchAll();
 $modules = $pdo->query("SELECT * FROM modules WHERE annee_univ = '2025/2026' ORDER BY code")->fetchAll();
 ?>
 <!DOCTYPE html>
@@ -217,7 +199,7 @@ $modules = $pdo->query("SELECT * FROM modules WHERE annee_univ = '2025/2026' ORD
 <body>
     <div class="layout">
         <aside class="sidebar">
-            <div class="logo"><img src="../usthb.png" class="logo-img" alt="Logo"><span>USTHB</span></div>
+            <div class="logo"><img src="../img/usthb.png" class="logo-img" alt="USTHB Logo"><span>USTHB</span></div>
             <nav>
                 <a href="?panel=dashboard" class="nav-item <?= $panel === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
                 <a href="?panel=students" class="nav-item <?= $panel === 'students' ? 'active' : '' ?>">Students</a>
@@ -272,7 +254,8 @@ $modules = $pdo->query("SELECT * FROM modules WHERE annee_univ = '2025/2026' ORD
                             <input type="text" name="matricule" placeholder="Matricule" required>
                         </div>
                         <div class="form-row">
-                            <select name="niveau"><option>L1 Info</option><option>L2 Info</option><option>L3 Info</option><option>M1 Info</option><option>M2 Info</option></select>
+                            <input type="hidden" name="niveau" value="L2 ISIL">
+                            <div style="display: flex; align-items: center; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc;">L2 ISIL</div>
                             <input type="password" name="password" placeholder="Temporary Password">
                             <button type="submit" name="add_student" class="btn btn-blue">Add Student</button>
                         </div>
@@ -281,6 +264,7 @@ $modules = $pdo->query("SELECT * FROM modules WHERE annee_univ = '2025/2026' ORD
 
                 <div class="card">
                     <div style="margin-bottom: 16px; font-size: 16px; font-weight: 600; color: #0f172a;">Students List</div>
+                    <input type="text" id="student-search" placeholder="Search students by name..." style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; margin-bottom: 16px;">
                     <div style="overflow-x: auto;">
                         <table>
                             <thead>
@@ -289,16 +273,24 @@ $modules = $pdo->query("SELECT * FROM modules WHERE annee_univ = '2025/2026' ORD
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Level</th>
+                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="students-tbody">
                                 <?php foreach ($students as $s): ?>
                                 <tr>
                                     <td><?= h($s['matricule']) ?></td>
                                     <td><?= h($s['nom'] . ', ' . $s['prenom']) ?></td>
                                     <td><?= h($s['email']) ?></td>
                                     <td><?= h($s['niveau']) ?></td>
+                                    <td>
+                                        <?php
+                                        $last_online = $s['last_online'] ? strtotime($s['last_online']) : null;
+                                        $is_online = $last_online && (time() - $last_online) < 300;
+                                        echo $is_online ? '<span style="color: green; font-size: 18px;">●</span>' : '<span style="color: red; font-size: 18px;">●</span>';
+                                        ?>
+                                    </td>
                                     <td>
                                         <form method="POST" style="display: inline;">
                                             <input type="hidden" name="student_id" value="<?= $s['id'] ?>">
@@ -336,6 +328,7 @@ $modules = $pdo->query("SELECT * FROM modules WHERE annee_univ = '2025/2026' ORD
 
                 <div class="card">
                     <div style="margin-bottom: 16px; font-size: 16px; font-weight: 600; color: #0f172a;">Teachers List</div>
+                    <input type="text" id="teacher-search" placeholder="Search teachers by name..." style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; margin-bottom: 16px;">
                     <div style="overflow-x: auto;">
                         <table>
                             <thead>
@@ -344,16 +337,32 @@ $modules = $pdo->query("SELECT * FROM modules WHERE annee_univ = '2025/2026' ORD
                                     <th>Email</th>
                                     <th>Grade</th>
                                     <th>Department</th>
+                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="teachers-tbody">
                                 <?php foreach ($teachers as $t): ?>
                                 <tr>
-                                    <td><?= h($t['nom'] . ', ' . $t['prenom']) ?></td>
+                                    <td>
+                                        <?php
+                                        $last_online = $t['last_online'] ? strtotime($t['last_online']) : null;
+                                        $now = time();
+                                        $is_online = $last_online && ($now - $last_online) < 300;
+                                        echo h($t['nom'] . ', ' . $t['prenom']);
+                                        if ($is_online) {
+                                            echo ' <span style="color: green;">●</span>';
+                                        }
+                                        ?>
+                                    </td>
                                     <td><?= h($t['email']) ?></td>
                                     <td><?= h($t['grade']) ?></td>
                                     <td><?= h($t['departement']) ?></td>
+                                    <td>
+                                        <?php
+                                        echo $is_online ? '<span style="color: green; font-size: 18px;">●</span>' : '<span style="color: red; font-size: 18px;">●</span>';
+                                        ?>
+                                    </td>
                                     <td>
                                         <form method="POST" style="display: inline;">
                                             <input type="hidden" name="teacher_id" value="<?= $t['id'] ?>">
@@ -390,6 +399,7 @@ $modules = $pdo->query("SELECT * FROM modules WHERE annee_univ = '2025/2026' ORD
 
                 <div class="card">
                     <div style="margin-bottom: 16px; font-size: 16px; font-weight: 600; color: #0f172a;">Modules List</div>
+                    <input type="text" id="module-search" placeholder="Search modules by code or name..." style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; margin-bottom: 16px;">
                     <div style="overflow-x: auto;">
                         <table>
                             <thead>
@@ -402,7 +412,7 @@ $modules = $pdo->query("SELECT * FROM modules WHERE annee_univ = '2025/2026' ORD
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="modules-tbody">
                                 <?php foreach ($modules as $m): 
                                     $teacher = null;
                                     if ($m['enseignant_id']) {
@@ -467,10 +477,11 @@ $modules = $pdo->query("SELECT * FROM modules WHERE annee_univ = '2025/2026' ORD
                                     n.note_td,
                                     n.note_exam,
                                     ROUND((n.note_tp * 0.2) + (n.note_td * 0.3) + (n.note_exam * 0.5), 2) as average
-                                FROM notes n
-                                JOIN modules m ON n.module_id = m.id
-                                LEFT JOIN enseignants ens ON n.enseignant_id = ens.id
-                                WHERE n.etudiant_id = ? AND n.annee_univ = '2025/2026'
+                                FROM inscriptions i
+                                JOIN modules m ON i.module_id = m.id
+                                LEFT JOIN notes n ON n.module_id = i.module_id AND n.etudiant_id = i.etudiant_id AND n.annee_univ = i.annee_univ
+                                LEFT JOIN enseignants ens ON m.enseignant_id = ens.id
+                                WHERE i.etudiant_id = ? AND i.annee_univ = '2025/2026'
                                 ORDER BY m.code
                             ");
                             $stmt->execute([$selected_student_id]);
@@ -535,6 +546,7 @@ $modules = $pdo->query("SELECT * FROM modules WHERE annee_univ = '2025/2026' ORD
                     <!-- Students List View -->
                     <div class="card">
                         <div style="margin-bottom: 16px; font-size: 16px; font-weight: 600; color: #0f172a;">Click a student to see their grades</div>
+                        <input type="text" id="grade-student-search" placeholder="Search students by name..." style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; margin-bottom: 16px;">
                         <div style="overflow-x: auto;">
                             <table>
                                 <thead>
@@ -546,7 +558,7 @@ $modules = $pdo->query("SELECT * FROM modules WHERE annee_univ = '2025/2026' ORD
                                         <th></th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="grade-students-tbody">
                                     <?php
                                     try {
                                         $stmt = $pdo->prepare("
@@ -593,5 +605,71 @@ $modules = $pdo->query("SELECT * FROM modules WHERE annee_univ = '2025/2026' ORD
             <?php endif; ?>
         </main>
     </div>
+    <script>
+        // Students search
+        const studentSearch = document.getElementById('student-search');
+        if (studentSearch) {
+            studentSearch.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const tbody = document.getElementById('students-tbody');
+                if (tbody) {
+                    const rows = tbody.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        const name = row.cells[1].textContent.toLowerCase();
+                        row.style.display = name.includes(query) ? '' : 'none';
+                    });
+                }
+            });
+        }
+
+        // Teachers search
+        const teacherSearch = document.getElementById('teacher-search');
+        if (teacherSearch) {
+            teacherSearch.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const tbody = document.getElementById('teachers-tbody');
+                if (tbody) {
+                    const rows = tbody.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        const name = row.cells[0].textContent.toLowerCase();
+                        row.style.display = name.includes(query) ? '' : 'none';
+                    });
+                }
+            });
+        }
+
+        // Modules search
+        const moduleSearch = document.getElementById('module-search');
+        if (moduleSearch) {
+            moduleSearch.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const tbody = document.getElementById('modules-tbody');
+                if (tbody) {
+                    const rows = tbody.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        const code = row.cells[0].textContent.toLowerCase();
+                        const name = row.cells[1].textContent.toLowerCase();
+                        row.style.display = (code.includes(query) || name.includes(query)) ? '' : 'none';
+                    });
+                }
+            });
+        }
+
+        // Grade review students search
+        const gradeStudentSearch = document.getElementById('grade-student-search');
+        if (gradeStudentSearch) {
+            gradeStudentSearch.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const tbody = document.getElementById('grade-students-tbody');
+                if (tbody) {
+                    const rows = tbody.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        const name = row.cells[0].textContent.toLowerCase();
+                        row.style.display = name.includes(query) ? '' : 'none';
+                    });
+                }
+            });
+        }
+    </script>
 </body>
 </html>

@@ -1,13 +1,6 @@
 <?php
-// ============================================================
-//  auth.php — Fonctions d'authentification & session
-// ============================================================
-
 require_once __DIR__ . '/config.php';
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() === PHP_SESSION_NONE) session_start();
 
 /* ── Connexion ────────────────────────────────────────────── */
 function login(string $identifiant, string $password, string $role): array {
@@ -49,12 +42,18 @@ function login(string $identifiant, string $password, string $role): array {
     $_SESSION['user_role'] = $role;
     $_SESSION['user_nom']  = $user['prenom'] . ' ' . $user['nom'];
 
+    // Update last online for teachers and students
+    if ($role === 'enseignant' || $role === 'etudiant') {
+        $table = $role === 'enseignant' ? 'enseignants' : 'etudiants';
+        $stmt = $pdo->prepare("UPDATE $table SET last_online = NOW() WHERE id = ?");
+        $stmt->execute([$user['id']]);
+    }
+
     if ($role === 'etudiant') {
         $_SESSION['user_niveau']    = $user['niveau'] ?? '';
         $_SESSION['user_matricule'] = $user['matricule'] ?? '';
     }
 
-    // FIX: regenerate session ID on login to prevent session fixation
     session_regenerate_id(true);
 
     return ['success' => true];
@@ -110,8 +109,8 @@ function register(array $data): array {
             ]);
 
         } elseif ($role === 'admin') {
-            // FIX: admin secret moved out of source code — set ADMIN_SECRET in your .env or config.php
-            $admin_secret = defined('ADMIN_SECRET') ? ADMIN_SECRET : getenv('ADMIN_SECRET');
+    // FIX: moved out of source code — set in .env or config.php
+            $admin_secret = @constant('ADMIN_SECRET') ?: getenv('ADMIN_SECRET');
             if (empty($admin_secret) || ($data['code_admin'] ?? '') !== $admin_secret) {
                 return ['success' => false, 'message' => "Code d'accès administrateur invalide."];
             }
@@ -173,11 +172,39 @@ function require_login(string $expected_role = ''): void {
 }
 
 function logout(): void {
-    // FIX: properly destroy session and regenerate ID to prevent session fixation
+    $pdo = get_pdo();
+    $user_id = $_SESSION['user_id'] ?? null;
+    $user_role = $_SESSION['user_role'] ?? null;
+
+    // Mark user as offline in database before destroying session
+    if ($user_id && $user_role) {
+        $tables = [
+            'etudiant' => 'etudiants',
+            'enseignant' => 'enseignants',
+            'admin' => 'admins',
+        ];
+
+        if (isset($tables[$user_role])) {
+            $table = $tables[$user_role];
+            $stmt = $pdo->prepare("UPDATE $table SET last_online = NULL WHERE id = ?");
+            $stmt->execute([$user_id]);
+        }
+    }
+
+    // Destroy session and clear cookie
     session_unset();
+    $_SESSION = [];
+
+    $params = session_get_cookie_params();
+    setcookie(session_name(), '', time() - 42000,
+        $params['path'], $params['domain'],
+        $params['secure'], $params['httponly']
+    );
+
     session_destroy();
     session_start();
     session_regenerate_id(true);
+
     header('Location: ' . url('index.php'));
     exit;
 }

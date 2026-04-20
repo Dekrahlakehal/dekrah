@@ -1,9 +1,6 @@
 <?php
 require_once '../includes/auth.php';
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'etudiant') {
-    header('Location: ' . url('../public/login.php'));
-    exit();
-}
+require_login('etudiant');
 $pdo = get_pdo();
 $user_id = $_SESSION['user_id'];
 
@@ -338,7 +335,7 @@ $max_absences = 3;
 <div class="layout">
     <aside class="sidebar">
         <div class="logo">
-            <img src="../usthb.png" class="logo-img" alt="USTHB Logo">
+            <img src="../img/usthb.png" class="logo-img" alt="USTHB Logo">
             <span>USTHB</span>
         </div>
         <nav>

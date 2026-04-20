@@ -1,34 +1,10 @@
 <?php
-// ============================================================
-//  login.php — Login page
-// ============================================================
 require_once '../includes/auth.php';
-
-if (is_logged_in()) {
-    header('Location: ' . url(get_dashboard_url()));
-    exit;
-}
-
-$error    = '';
-$pre_role = $_GET['role'] ?? 'etudiant';
-if (!in_array($pre_role, ['etudiant', 'enseignant', 'admin'])) $pre_role = 'etudiant';
-
+if (is_logged_in()) { header('Location: ' . url(get_dashboard_url())); exit; }
+$error = ''; $pre_role = in_array($_GET['role'] ?? 'etudiant', ['etudiant', 'enseignant', 'admin']) ? $_GET['role'] : 'etudiant';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $identifiant = trim($_POST['identifiant'] ?? '');
-    $password    = $_POST['password'] ?? '';
-    $role        = $_POST['role'] ?? '';
-
-    if (empty($identifiant) || empty($password) || empty($role)) {
-        $error = 'Please fill in all fields.';
-    } else {
-        $result = login($identifiant, $password, $role);
-        if ($result['success']) {
-            header('Location: ' . url(get_dashboard_url()));
-            exit;
-        } else {
-            $error = $result['message'];
-        }
-    }
+    $result = login(trim($_POST['identifiant'] ?? ''), $_POST['password'] ?? '', $_POST['role'] ?? '');
+    if (!$result['success']) { $error = $result['message']; } else { header('Location: ' . url(get_dashboard_url())); exit; }
 }
 ?>
 <!DOCTYPE html>
@@ -43,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <nav class="navbar">
     <div class="nav-logo">
-        <div class="nav-logo-box"><span>FI</span></div>
+        <div class="nav-logo-box"><img src="../img/usthb.png" alt="USTHB Logo" width="34" height="34"></div>
         <div>
             <div class="nav-brand"><?= APP_NAME ?></div>
             <div class="nav-brand-sub"><?= APP_SUB ?></div>

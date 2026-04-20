@@ -281,11 +281,10 @@ $panel = $_GET['panel'] ?? 'grades';
 <body>
     <div class="layout">
         <aside class="sidebar">
-            <div class="logo"><img src="../usthb.png" class="logo-img" alt="Logo"><span>USTHB</span></div>
+            <div class="logo"><img src="../img/usthb.png" class="logo-img" alt="USTHB Logo"><span>USTHB</span></div>
             <nav>
                 <a href="?panel=grades" class="nav-item <?= $panel === 'grades' ? 'active' : '' ?>">Grades</a>
                 <a href="?panel=absences" class="nav-item <?= $panel === 'absences' ? 'active' : '' ?>">Absences</a>
-                <a href="?panel=modules" class="nav-item <?= $panel === 'modules' ? 'active' : '' ?>">My Modules</a>
                 <a href="?panel=profile" class="nav-item <?= $panel === 'profile' ? 'active' : '' ?>">Profile</a>
                 <a href="../public/logout.php" class="nav-logout">Logout</a>
             </nav>
@@ -333,6 +332,7 @@ $panel = $_GET['panel'] ?? 'grades';
                         <?php if (empty($students)): ?>
                             <p style="color: #64748b; font-size: 12px;">No students enrolled in this module.</p>
                         <?php else: ?>
+                            <input type="text" class="student-search" placeholder="Search students by name..." style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; margin-bottom: 16px;">
                             <div style="overflow-x: auto;">
                                 <table>
                                     <thead>
@@ -347,7 +347,7 @@ $panel = $_GET['panel'] ?? 'grades';
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody class="student-tbody">
                                         <?php foreach ($students as $std):
                                             $tp = $std['note_tp'];
                                             $td = $std['note_td'];
@@ -486,6 +486,7 @@ $panel = $_GET['panel'] ?? 'grades';
                         <?php if (empty($students)): ?>
                             <p style="color: #64748b; font-size: 12px;">No students enrolled in this module.</p>
                         <?php else: ?>
+                            <input type="text" class="student-search" placeholder="Search students by name..." style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; margin-bottom: 16px;">
                             <div style="overflow-x: auto;">
                                 <table>
                                     <thead>
@@ -496,7 +497,7 @@ $panel = $_GET['panel'] ?? 'grades';
                                             <th>Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody class="student-tbody">
                                         <?php foreach ($students as $std):
                                             // Get absence count for this student and module
                                             $absStmt = $pdo->prepare("SELECT nombre FROM absences WHERE etudiant_id = ? AND module_id = ?");
@@ -563,12 +564,27 @@ $panel = $_GET['panel'] ?? 'grades';
                         <?php endif; ?>
                         <div style="display: grid; grid-template-columns: 120px 1fr; gap: 16px;">
                             <strong style="font-size: 12px; color: #64748b; text-transform: uppercase;">Modules</strong>
-                            <div style="font-size: 13px;"><?= count($modules) ?> assigned</div>
+                            <div style="font-size: 13px;"><?= implode(', ', array_map(fn($m) => $m['code'], $modules)) ?: 'None' ?></div>
                         </div>
                     </div>
                 </div>
             <?php endif; ?>
         </main>
     </div>
+    <script>
+        document.querySelectorAll('.student-search').forEach(searchInput => {
+            searchInput.addEventListener('input', function() {
+                const tbody = this.closest('.card').querySelector('.student-tbody');
+                if (tbody) {
+                    const query = this.value.toLowerCase();
+                    const rows = tbody.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        const name = row.cells[1].textContent.toLowerCase();
+                        row.style.display = name.includes(query) ? '' : 'none';
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

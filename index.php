@@ -20,7 +20,7 @@ if (is_logged_in()) {
 <!-- ── Navbar ────────────────────────────────────────────── -->
 <nav class="navbar">
     <div class="nav-logo">
-        <div class="nav-logo-box blue"><span>FI</span></div>
+        <div class="nav-logo-box"><img src="img/usthb.png" alt="USTHB Logo" width="34" height="34"></div>
         <div>
             <div class="nav-brand"><?= APP_NAME ?></div>
             <div class="nav-brand-sub"><?= APP_SUB ?></div>

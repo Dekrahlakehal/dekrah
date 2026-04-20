@@ -1,9 +1,6 @@
 <?php
 require_once '../includes/auth.php';
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'etudiant') { 
-    header('Location: ' . url('public/login.php')); 
-    exit(); 
-}
+require_login('etudiant');
 $pdo = get_pdo();
 $user_id = $_SESSION['user_id'];
 
@@ -14,16 +11,40 @@ $u = $stmt->fetch();
 $days_fr = ['Sunday'=>'Dimanche','Monday'=>'Lundi','Tuesday'=>'Mardi','Wednesday'=>'Mercredi','Thursday'=>'Jeudi','Friday'=>'Vendredi','Saturday'=>'Samedi'];
 $today_fr = $days_fr[date('l')];
 
-$stmt = $pdo->prepare('SELECT * FROM planning WHERE etudiant_id = ? AND jour = ? ORDER BY heure_debut ASC');
-$stmt->execute([$user_id, $today_fr]);
-$today_schedule = $stmt->fetchAll();
+function buildSharedSchedule(array $modules) {
+    $days = ['Samedi', 'Dimanche', 'Lundi', 'Mardi', 'Mercredi'];
+    $times = ['08:00:00', '10:00:00', '12:00:00', '14:00:00', '16:00:00', '18:00:00'];
+    $rooms = ['Salle 101', 'Salle 102', 'Salle 201', 'Salle 202', 'Amphi A', 'Amphi B'];
+    $schedule = [];
+    foreach ($modules as $index => $module) {
+        $day = $days[$index % count($days)];
+        $schedule[$day][] = [
+            'jour' => $day,
+            'module_name' => $module['code'] . ' — ' . $module['intitule'],
+            'heure_debut' => $times[$index % count($times)],
+            'salle' => $rooms[$index % count($rooms)],
+        ];
+    }
+    return $schedule;
+}
+
+$stmt = $pdo->prepare('SELECT m.code, m.intitule FROM inscriptions i JOIN modules m ON m.id = i.module_id WHERE i.etudiant_id = ? AND i.annee_univ = ? ORDER BY m.code ASC');
+$stmt->execute([$user_id, '2025/2026']);
+$module_list = $stmt->fetchAll();
+$shared_schedule = buildSharedSchedule($module_list);
+$today_schedule = $shared_schedule[$today_fr] ?? [];
 
 $stmt = $pdo->prepare('SELECT m.code, n.note_tp, n.note_td, n.note_exam FROM inscriptions i JOIN modules m ON m.id = i.module_id LEFT JOIN notes n ON n.etudiant_id = i.etudiant_id AND n.module_id = i.module_id WHERE i.etudiant_id = ?');
 $stmt->execute([$user_id]);
 $all_notes = $stmt->fetchAll();
 
-$stmt = $pdo->prepare('SELECT m.code, a.nombre FROM absences a JOIN modules m ON m.id = a.module_id WHERE a.etudiant_id = ?');
-$stmt->execute([$user_id]);
+$stmt = $pdo->prepare('SELECT m.code, COALESCE(a.nombre, 0) AS nombre
+    FROM inscriptions i
+    JOIN modules m ON m.id = i.module_id
+    LEFT JOIN absences a ON a.etudiant_id = i.etudiant_id AND a.module_id = i.module_id AND a.annee_univ = i.annee_univ
+    WHERE i.etudiant_id = ? AND i.annee_univ = ?
+    ORDER BY m.code ASC');
+$stmt->execute([$user_id, '2025/2026']);
 $all_absences = $stmt->fetchAll();
 
 function calculateFinal($tp, $td, $exam) {
@@ -91,7 +112,7 @@ function calculateFinal($tp, $td, $exam) {
 <body>
     <div class="layout">
         <aside class="sidebar">
-            <div class="logo"><img src="../usthb.png" class="logo-img" alt="Logo"><span>USTHB</span></div>
+            <div class="logo"><img src="../img/usthb.png" class="logo-img" alt="USTHB Logo"><span>USTHB</span></div>
             <nav>
                 <a href="student.php" class="nav-item active">Dashboard</a>
                 <a href="classes.php" class="nav-item">My Classes</a>
